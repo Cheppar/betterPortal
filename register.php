@@ -24,57 +24,29 @@
         if($email != $email_conf){
             $error[] = "Emails don't match";
         }
-        
-        // To check if email already exists
-        try{
-            $stmnt = $pdo->prepare("SELECT email FROM users WHERE email = :email");
-            $user_data = [':email'=>$email];
-            $stmnt->execute($user_data);
-            if($stmnt ->rowCount()>0){
-                $error[] = "email'{$email}' already exists";
-            }
-                
-        }catch(PDOException $e){
-            echo "Error".$e->getMessage();
+        if(count_field_val($pdo, "users", "username" , $uname)!=0){
+            $error[] = "Username '{$uname}' already exists"; 
+        }
+        if(count_field_val($pdo, "users", "email" , $email)!=0){
+            $error[] = "Email '{$email}' already exists"; 
         }
         
-        // To check if password already exists
-        
-        try{
-            $stmnt = $pdo->prepare("SELECT username FROM users WHERE username = :username");
-            $user_data = [':username'=>$uname];
-            $stmnt->execute($user_data);
-            if($stmnt ->rowCount()>0){
-                $error[] = "Username '{$uname}' already exists";
-            }
-                
-        }catch(PDOException $e){
-            echo "Error".$e->getMessage();
-        }
-        
-//        // Validate password strength
-//        $uppercase    = preg_match('@[A-Z]@', $password);
-//        $lowercase    = preg_match('@[a-z]@', $password);
-//        $number       = preg_match('@[0-9]@', $password);
-//        $specialChars = preg_match('@[^\w]@', $password);
-//        
-//        if(!$uppercase || $lowercase || $number || $specialChars || strlen($pword)<6){
-//            $error[] = "Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";
-//        }
-        
+
         if(!isset($error)){
+            $vcode=generate_token();
            try{
-            
-           $sql = "INSERT INTO users(firstname, lastname, username, email, password, validationcode, active, joined, last_login)VALUES(:firstname, :lastname,:username,:email,:password,'test', 0, current_date, current_date)";
-            
+           $sql = "INSERT INTO users(firstname, lastname, username, email, password, validationcode, active, joined, last_login)VALUES(:firstname, :lastname,:username,:email,:password,:vcode, 0, current_date, current_date)";
            $stmnt = $pdo->prepare($sql);
-           
-           $user_data = [':firstname'=>$fname,':lastname'=>$lname,':username'=>$uname, ':password'=>$password,':email'=>$email];
-           
+           $user_data = [':firstname'=>$fname,':lastname'=>$lname,':username'=>$uname, ':password'=>password_hash($pword, PASSWORD_BCRYPT),':email'=>$email , ':vcode'=>generate_token()];
            $stmnt->execute($user_data);
-            $_SESSION ['message'] = " Your account '{$uname}' has been created";     
-           
-           echo "USER REGISTERED in DB";
+//           $body = "<p>We received a request to join our platform associated with this email address.<br> If you made this request, please follow the instructions below.<br>If you did not request to have your password reset you can safely ignore this email. Be assured your account is safe. <br> Click the link below to go to the last step to reset your password  <a href='activate.php?user={$uname}&code={$vcode}'> Activate User</a></p>"
+               
+//            send_mail($email, "Account Activation", $body, $from_email, $reply_email); 
+//            $_SESSION ['message'] = " Your account '{$uname}' has been created";      
+//            redirect("index.php");
+               
+        //header("Location: index.php");
+        //echo "USER REGISTERED in DB";
            
        } catch(PDOException $e){
            echo "Error".$e->getMessage();

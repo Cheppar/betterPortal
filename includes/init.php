@@ -1,5 +1,5 @@
 <?php
-
+ob_start();
 session_start();
 
 //*****POSTGRESQL******
@@ -10,5 +10,12 @@ $opt = [
     PDO:: ATTR_EMULATE_PREPARES   => false
 ];
 $pdo = new PDO($dsn, 'postgres','amaEchi#11947', $opt);
-echo "connected To Database";
+
+
+// Change in your server
+$from_email = "ejioforched@gmail.com";
+$reply_email = "chepparoil@gmail.com";
+
+include "php_functions.php";
+
 ?>
