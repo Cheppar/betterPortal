@@ -2,14 +2,59 @@
 
 <?php
     if($_SERVER['REQUEST_METHOD']== "POST"){
-       try{
-        $sql = "INSERT INTO users(firstname, lastname, username, email, password, validationcode, active, joined, last_login)VALUES('{$_POST['firstname']}','{$_POST['lastname']}','{$_POST['username']}','{$_POST['email']}','{$_POST['password']}', 'test', 0, current_date, current_date)";
-           echo $sql;
+        $fname = $_POST['firstname'];
+        $lname = $_POST['lastname'];
+        $uname = $_POST['username'];
+        $email = $_POST['email'];
+        $email_conf = $_POST['email'];
+        $password = $_POST['password'];
+        $pword_conf = $_POST['password_confirm'];
+        
+        if(strlen($lname)<3){
+            $error[] = "Last name must be atleast 3 characters long";
+        }
+        if(strlen($uname)<6){
+            $error[] = "Username must be atleast 6 characters long";
+        }
+        
+        // Validate password strength
+        $uppercase    = preg_match('@[A-Z]@', $password);
+        $lowercase    = preg_match('@[a-z]@', $password);
+        $number       = preg_match('@[0-9]@', $password);
+        $specialChars = preg_match('@[^\w]@', $password);
+        
+        if(!$uppercase || $lowercase || $number || $specialChars || strlen($pword)<6){
+            $error[] = "Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";
+        }
+        
+        if($pword != $pword_conf){
+            $error[] = "Passwords don't match";
+        }
+        
+        if($email != $email_conf){
+            $error[] = "Emails don't match";
+        }
+        
+        if(!isset($error)){
+           try{
+            
+           $sql = "INSERT INTO users(firstname, lastname, username, email, password, validationcode, active, joined, last_login)VALUES(:firstname, :lastname,:username,:email,:password,'test', 0, current_date, current_date)";
+            
+           $stmnt = $pdo->prepare($sql);
+           
+           $user_data = [':firstname'=>$fname,':lastname'=>$lname,':username'=>$uname, ':password'=>$password,':email'=>$email];
+           
+           $stmnt->execute($user_data);
+           
+           echo "USER REGISTERED in DB";
+           
        } catch(PDOException $e){
            echo "Error".$e->getMessage();
-       }
+            } 
+        } 
+       
     }else{
-        echo "NO POST DATA INCLUDED";
+        
     }
 ?>
 
@@ -48,15 +93,11 @@
                               <div class="login-links hide" data-error-handler-target="login"><a href="login.html">Log in</a><span> or </span><a href="password/new.html">Reset password</a></div>
                           </div>
                           <div class="field-container" data-controller="validate"><input class="form-control hide-reveal" placeholder="Password" pattern=".{8,}$" type="password" required="required" data-action="input-&gt;submit#enableIfValid input-&gt;validate#revalidateAndEmptyInput input-&gt;error-handler#updateValidMessages focus-&gt;submit#enableIfValid valid-&gt;submit#enableIfValid" data-error-handler-target="input" name="user[password]" id="user_password" />
-                              <div class="eyecon"><span class="hide" data-action="click-&gt;submit#hideRevealEmail" id="eye-open"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                                          <path d="M0 0h24v24H0z" fill="none" />
-    <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-</svg>
-</span><span data-action="click-&gt;submit#hideRevealEmail" id="eye-closed"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-    <path d="M0 0h24v24H0zm0 0h24v24H0zm0 0h24v24H0zm0 0h24v24H0z" fill="none"/>
-    <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-</svg>
-</span></div><div class="hint">Needs to be at least 8 characters.</div><div class="error-msg" data-validate-target="error" data-error-handler-target="error"></div></div><div class="field-container" data-controller="ssv" data-ssv-url="/v1/usernames/availability?username="><input class="form-control" placeholder="Username" pattern=".{2,}$" type="username" data-action="input-&gt;ssv#validate input-&gt;error-handler#updateValidMessages focus-&gt;ssv#validate valid-&gt;submit#enableIfValid" data-ssv-target="input" data-error-handler-target="input" required="required" name="user[username]" id="user_username" /><div class="hint">This is your public facing name when reviewing stores and products. Two characters minimum.</div><div class="error-msg" data-ssv-target="error" data-error-handler-target="error"></div></div>
+                              <div class="eyecon">
+                                         
+                                         
+   
+  </div><div class="hint">Needs to be at least 8 characters.</div><div class="error-msg" data-validate-target="error" data-error-handler-target="error"></div></div><div class="field-container" data-controller="ssv" data-ssv-url="/v1/usernames/availability?username="><input class="form-control" placeholder="Username" pattern=".{2,}$" type="username" data-action="input-&gt;ssv#validate input-&gt;error-handler#updateValidMessages focus-&gt;ssv#validate valid-&gt;submit#enableIfValid" data-ssv-target="input" data-error-handler-target="input" required="required" name="user[username]" id="user_username" /><div class="hint">This is your public facing name when reviewing stores and products. Two characters minimum.</div><div class="error-msg" data-ssv-target="error" data-error-handler-target="error"></div></div>
       
       <div id="checkbox-container">
       <label class="checkbox-wrapper"><input name="user[accepts_newsletter]" type="hidden" value="0" /><input type="checkbox" value="1" name="user[accepts_newsletter]" id="user_accepts_newsletter" /><span class="checkbox-image" id="notifications-checkbox"></span><span class="checkbox-label" for="notifications">Please send me emails about deals, new products, and recommendations on Weedmaps.</span></label>
@@ -65,7 +106,8 @@
       <input type="checkbox" name="accepts_terms" id="accepts_terms" value="true" required="required" data-action="submit#enableIfValid" />
       <span class="checkbox-image" id="terms-checkbox"></span>
       
-      <span class="checkbox-label">I agree to the collection and sharing of my personal information to create a Texas car wash listing account, and I agree to the <a href='legal/terms.html'>Terms of Use</a> and <a href='legal/privacy.html'>Privacy Policy</a>.</span></label></div>
+      <span class="checkbox-label">I agree to the collection and sharing of my personal information to create a Texas car wash listing account, and I agree to the <a href='legal/terms.html'>Terms of Use</a> and <a href='legal/privacy.html'>Privacy Policy</a>.</span></label>
+      </div>
        
        
           
@@ -77,6 +119,18 @@
 </div>
 </div>
 <div class="form-container signup" data-controller="analytics">
+  
+    <div class="error"> 
+        <?php 
+            if(isset($error)){
+                foreach($error as $msg){
+                    echo "<p class='bg-danger text-center'>{$msg}</p>"; 
+                }
+            }
+        ?>
+        
+    </div>
+   
     <h2 class="form-title center">Sign up</h2>
     <div id="content-container">
         <div class="email-signup field-container">
@@ -87,44 +141,21 @@
         
         <input type="text" name="lastname" id="lastname" tabindex="2" class="form-control loginEntry" placeholder="Last Name" value="" required style="width:100%; margin-bottom: 15px;"/>
         
-        <input type="text" name="username" id="username" tabindex="3" class="form-control" placeholder="Username" value="" required style="width:100%; margin-bottom: 15px;"/>
+        <input type="text" name="username" id="username" tabindex="3" class="form-control" placeholder="Username" value="" required style="width:100%; margin-bottom: 15px;">
         
-         <input type="email" name="email" id="register_email" tabindex="4" class="form-control" placeholder="Email Address" value="" required style="width:100%; margin-bottom: 15px;" >
+         <input type="email" name="email" id="email" tabindex="4" class="form-control" placeholder="Email Address" value="" required style="width:100%; margin-bottom: 15px;" >
+         
+         <input type="email" name="email-confirm" id="confirm-email" tabindex="4" class="form-control" placeholder="Confirm Email Address" value="" required style="width:100%; margin-bottom: 15px;" >
          
          <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" required style="width:100%; margin-bottom: 15px;">
          
-         <input type="password" name="confirm_password" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required style="width:100%; margin-bottom: 15px;"/>
+        <input type="password" name="password-confirm" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required style="width:100%; margin-bottom: 15px;"/>
          
          <button class="btn btn-default" data-action="click-&gt;signup#revealSignupForm click-&gt;analytics#track" data-analytics-name="Continue with Email" data-controller="signup" id="display_signup">Continue</button>
         
             </form>
-<!--    </div>-->
-       
-<!--
-    <div class="form-group">
-        <input type="text" name="lastname" id="lastname" tabindex="2" class="form-control" placeholder="Last Name" value="" required >
-    </div>
-    <div class="form-group">
-        <input type="text" name="username" id="username" tabindex="3" class="form-control" placeholder="Username" value="" required >
-    </div>
-    <div class="form-group">
-        <input type="email" name="email" id="register_email" tabindex="4" class="form-control" placeholder="Email Address" value="" required >
-    </div>
-    <div class="form-group">
-        <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" required>
-    </div>
-    <div class="form-group">
-        <input type="password" name="confirm_password" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required>
-    </div>
-    <div class="form-group">
-        <textarea name="comments" id="comments" tabindex="7" class="form-control" placeholder="Comments" required></textarea>
-    </div>
--->
-        
-<!--        <button class="btn btn-default" data-action="click-&gt;signup#revealSignupFormclick-&gt;analytics#track" data-analytics-name="Continue with Email" data-controller="signup" id="display_signup">Continue</button>-->
-       
-       
-        
+
+         
         </div>
         <div class="block-link-wrapper"><a id="member_login" href="login.html">Already a member? Log in</a></div>
         <div class="separator-container"><span class="separator left"></span><span>or</span><span class="separator right"></span></div>

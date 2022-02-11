@@ -36,3 +36,39 @@ nav a:hover {
     margin-bottom: 15px;
     width: 100%;
 }
+
+//******* Hover to display tooltip*****//
+
+.input {
+    position: relative;
+}
+
+.tooltip {
+    display: none;
+    padding: 10px;
+}
+
+.input:hover .tooltip {
+    background: blue;
+    border-radius: 3px;
+    bottom: -60px;
+    color: white;
+    display: inline;
+    height: 30px;
+    left: 0;
+    line-height: 30px;
+    position: absolute;
+}
+
+.input:hover .tooltip:before {
+    display: block;
+    content: "";
+    position: absolute;
+    top: -5px;
+    width: 0; 
+	height: 0; 
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	
+	border-bottom: 5px solid blue;
+}
