@@ -17,23 +17,50 @@
             $error[] = "Username must be atleast 6 characters long";
         }
         
-        // Validate password strength
-        $uppercase    = preg_match('@[A-Z]@', $password);
-        $lowercase    = preg_match('@[a-z]@', $password);
-        $number       = preg_match('@[0-9]@', $password);
-        $specialChars = preg_match('@[^\w]@', $password);
-        
-        if(!$uppercase || $lowercase || $number || $specialChars || strlen($pword)<6){
-            $error[] = "Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";
-        }
-        
-        if($pword != $pword_conf){
+         if($pword != $pword_conf){
             $error[] = "Passwords don't match";
         }
         
         if($email != $email_conf){
             $error[] = "Emails don't match";
         }
+        
+        // To check if email already exists
+        try{
+            $stmnt = $pdo->prepare("SELECT email FROM users WHERE email = :email");
+            $user_data = [':email'=>$email];
+            $stmnt->execute($user_data);
+            if($stmnt ->rowCount()>0){
+                $error[] = "email'{$email}' already exists";
+            }
+                
+        }catch(PDOException $e){
+            echo "Error".$e->getMessage();
+        }
+        
+        // To check if password already exists
+        
+        try{
+            $stmnt = $pdo->prepare("SELECT username FROM users WHERE username = :username");
+            $user_data = [':username'=>$uname];
+            $stmnt->execute($user_data);
+            if($stmnt ->rowCount()>0){
+                $error[] = "Username '{$uname}' already exists";
+            }
+                
+        }catch(PDOException $e){
+            echo "Error".$e->getMessage();
+        }
+        
+//        // Validate password strength
+//        $uppercase    = preg_match('@[A-Z]@', $password);
+//        $lowercase    = preg_match('@[a-z]@', $password);
+//        $number       = preg_match('@[0-9]@', $password);
+//        $specialChars = preg_match('@[^\w]@', $password);
+//        
+//        if(!$uppercase || $lowercase || $number || $specialChars || strlen($pword)<6){
+//            $error[] = "Password should be at least 8 characters in length and should include at least one upper case letter, one number, and one special character.";
+//        }
         
         if(!isset($error)){
            try{
@@ -45,6 +72,7 @@
            $user_data = [':firstname'=>$fname,':lastname'=>$lname,':username'=>$uname, ':password'=>$password,':email'=>$email];
            
            $stmnt->execute($user_data);
+            $_SESSION ['message'] = " Your account '{$uname}' has been created";     
            
            echo "USER REGISTERED in DB";
            
@@ -54,7 +82,13 @@
         } 
        
     }else{
-        
+        $fname  = "";
+        $lname  = "";
+        $uname  = "";
+        $email  = "";
+        $email_conf = "";
+        $password = "";
+        $pword_conf = "";
     }
 ?>
 
@@ -137,21 +171,21 @@
         
         <form id="register-form" method="post" role="form">
 
-        <input type="text" name="firstname" id="firstname" tabindex="1" class="form-control" placeholder="First Name" value="" required style="width:100%; margin-bottom: 15px;"  />
+        <input type="text" name="firstname" id="firstname" tabindex="1" class="form-control" placeholder="First Name" value="<?php echo $fname ?>" required style="width:100%; margin-bottom: 15px;"  />
         
-        <input type="text" name="lastname" id="lastname" tabindex="2" class="form-control loginEntry" placeholder="Last Name" value="" required style="width:100%; margin-bottom: 15px;"/>
+        <input type="text" name="lastname" id="lastname" tabindex="2" class="form-control loginEntry" placeholder="Last Name" value="<?php echo $lname ?>" required style="width:100%; margin-bottom: 15px;"/>
         
-        <input type="text" name="username" id="username" tabindex="3" class="form-control" placeholder="Username" value="" required style="width:100%; margin-bottom: 15px;">
+        <input type="text" name="username" id="username" tabindex="3" class="form-control" placeholder="Username" value="<?php echo $uname ?>" required style="width:100%; margin-bottom: 15px;">
         
-         <input type="email" name="email" id="email" tabindex="4" class="form-control" placeholder="Email Address" value="" required style="width:100%; margin-bottom: 15px;" >
+         <input type="email" name="email" id="email" tabindex="4" class="form-control" placeholder="Email Address" value="<?php echo $email ?>" required style="width:100%; margin-bottom: 15px;" >
          
-         <input type="email" name="email-confirm" id="confirm-email" tabindex="4" class="form-control" placeholder="Confirm Email Address" value="" required style="width:100%; margin-bottom: 15px;" >
+         <input type="email" name="email-confirm" id="confirm-email" tabindex="4" class="form-control" placeholder="Confirm Email Address" value="<?php echo $email_conf ?>" required style="width:100%; margin-bottom: 15px;" >
          
-         <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" required style="width:100%; margin-bottom: 15px;">
+         <input type="password" name="password" id="password" tabindex="5" class="form-control" placeholder="Password" value="<?php echo $password ?>" required style="width:100%; margin-bottom: 15px;">
          
-        <input type="password" name="password-confirm" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" required style="width:100%; margin-bottom: 15px;"/>
+        <input type="password" name="password-confirm" id="confirm-password" tabindex="6" class="form-control" placeholder="Confirm Password" value="<?php echo $pword_conf ?>" required style="width:100%; margin-bottom: 15px;"/>
          
-         <button class="btn btn-default" data-action="click-&gt;signup#revealSignupForm click-&gt;analytics#track" data-analytics-name="Continue with Email" data-controller="signup" id="display_signup">Continue</button>
+         <button class="btn btn-default" data-action="click-&gt;signup#revealSignupForm click-&gt;analytics#track" data-analytics-name="Continue with Email" data-controller="signup" id="display_signup">Register</button>
         
             </form>
 

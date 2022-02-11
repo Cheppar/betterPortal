@@ -1,4 +1,7 @@
 <?php
+
+session_start();
+
 //*****POSTGRESQL******
 $dsn = "pgsql:host=localhost;dbname=goldberger;port=5432";
 $opt = [
