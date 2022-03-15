@@ -11,8 +11,11 @@ $opt = [
 ];
 $pdo = new PDO($dsn, 'postgres','amaEchi#11947', $opt);
 
+//SETTING ROOT DIRECTORY
+//$root_directory = "portal";
 
-// Change in your server
+// CHANGE EMAIL TO YOUR SERVER
+
 $from_email = "ejioforched@gmail.com";
 $reply_email = "chepparoil@gmail.com";
 
